@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Stipt Techniek</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;700;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0d1117;--surface:#161b27;--card:#1c2235;--border:#252d45;
+  --accent:#f97316;--text:#e2e8f0;--muted:#556080;
+  --green:#22c55e;--gbg:#0f2318;--gb:#166534;
+  --purple:#a78bfa;--pbg:#1e1535;--pb:#5b21b6;
+  --blue:#60a5fa;--bbg:#0f1d35;--bb:#1d4ed8;
+  --red:#ef4444;--obg:#1a0f06;--ob:#9a3412;--orange:#fb923c;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+.topbar{background:var(--surface);border-bottom:2px solid var(--accent);padding:11px 14px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;}
+.logo{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.35rem;color:#fff;letter-spacing:1px;}
+.logo em{color:var(--accent);font-style:normal;}
+.topbar-right{display:flex;align-items:center;gap:8px;}
+#admin-badge{display:none;background:var(--accent);color:#fff;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.75rem;padding:3px 9px;border-radius:4px;}
+#logout-btn{display:none;background:transparent;border:1px solid var(--border);color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.75rem;padding:4px 10px;border-radius:4px;cursor:pointer;}
+
+.tabs{background:var(--surface);border-bottom:1px solid var(--border);padding:0 14px;display:flex;overflow-x:auto;}
+.tab{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.88rem;padding:11px 16px;border:none;background:transparent;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+.view{display:none;padding:14px 12px 60px;max-width:720px;margin:0 auto;}
+.view.active{display:block;}
+
+/* naam grid */
+.picker-wrap{display:flex;flex-direction:column;align-items:center;padding:20px 0;text-align:center;}
+.picker-wrap h1{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.8rem;color:#fff;margin-bottom:4px;}
+.picker-wrap p{color:var(--muted);font-size:.86rem;margin-bottom:20px;}
+.name-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;width:100%;}
+.name-btn{background:var(--card);border:1.5px solid var(--border);color:var(--text);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1rem;padding:14px 10px;border-radius:9px;cursor:pointer;text-align:center;width:100%;-webkit-tap-highlight-color:rgba(249,115,22,.3);}
+.admin-btn{border-color:var(--purple);color:var(--purple);}
+
+/* eigen rooster */
+.back-btn{display:inline-flex;align-items:center;gap:5px;background:transparent;border:1px solid var(--border);color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.86rem;padding:6px 12px;border-radius:6px;cursor:pointer;margin-bottom:12px;}
+.datum-lbl{font-family:'Barlow Condensed',sans-serif;font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}
+.eigen-card{background:var(--card);border:1.5px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:10px;}
+.ec-head{background:linear-gradient(90deg,#1a2040,var(--card));padding:12px 14px;border-bottom:1px solid var(--border);}
+.ec-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:5px;}
+.ec-code{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.5rem;color:var(--accent);}
+.ec-og{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.05rem;color:#fff;}
+.ec-loc{font-size:.83rem;color:var(--muted);}
+.ec-loc strong{color:var(--text);}
+.ec-body{padding:10px 14px;}
+.ib{border-radius:7px;padding:9px 12px;margin-bottom:8px;}
+.ib-lbl{font-family:'Barlow Condensed',sans-serif;font-size:.67rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-bottom:3px;}
+.ib-uitv{background:var(--pbg);border:1px solid var(--pb);}
+.ib-uitv .ib-lbl{color:var(--purple);}
+.ib-werk{background:var(--bbg);border:1px solid var(--bb);}
+.ib-werk .ib-lbl{color:var(--blue);}
+.ib-opm{background:var(--gbg);border:1px solid var(--gb);}
+.ib-opm .ib-lbl{color:var(--green);}
+.ib-start{background:var(--obg);border:1px solid var(--ob);}
+.ib-start .ib-lbl{color:var(--orange);}
+.ib-coll{background:var(--surface);border:1px solid var(--border);}
+.ib-coll .ib-lbl{color:var(--muted);}
+.start-big{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.8rem;color:var(--orange);}
+.coll-list{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px;}
+.coll-chip{background:var(--card);border:1px solid var(--border);color:var(--text);font-size:.79rem;padding:3px 10px;border-radius:20px;}
+.kt-tag{display:inline-block;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.72rem;letter-spacing:1px;background:#0d2010;border:1px solid var(--gb);color:#86efac;padding:1px 6px;border-radius:3px;margin-left:5px;}
+.tbadge{font-family:'Barlow Condensed',sans-serif;font-size:.68rem;font-weight:700;letter-spacing:.5px;padding:2px 7px;border-radius:4px;text-transform:uppercase;white-space:nowrap;}
+.t-asbest{background:#7f1d1d;color:#fca5a5;}
+.t-sloop{background:#713f12;color:#fde68a;}
+.t-doedag{background:#1e3a5f;color:#93c5fd;}
+.geen{text-align:center;padding:40px 16px;}
+.geen .icon{font-size:2.5rem;margin-bottom:10px;}
+.geen h2{font-family:'Barlow Condensed',sans-serif;font-size:1.4rem;color:var(--text);margin-bottom:6px;}
+.geen p{color:var(--muted);font-size:.83rem;}
+
+/* overzicht */
+.stat-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 14px;min-width:75px;display:flex;flex-direction:column;align-items:center;}
+.stat-n{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.5rem;color:var(--accent);line-height:1;}
+.stat-l{font-size:.63rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+.ovz-card{background:var(--card);border:1px solid var(--border);border-radius:9px;margin-bottom:8px;overflow:hidden;}
+.ovz-head{background:linear-gradient(90deg,#1a2040,var(--card));padding:9px 12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.ovz-code{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.15rem;color:var(--accent);}
+.ovz-og{font-family:'Barlow Condensed',sans-serif;font-weight:700;color:#fff;}
+.ovz-loc{font-size:.74rem;color:var(--muted);}
+.ovz-body{padding:8px 12px;}
+.uitv-chip{background:var(--pbg);border:1px solid var(--pb);color:var(--purple);font-size:.72rem;padding:2px 8px;border-radius:3px;display:inline-block;margin:2px;}
+.werk-chip{background:var(--bbg);border:1px solid var(--bb);color:var(--blue);font-size:.72rem;padding:2px 8px;border-radius:3px;display:inline-block;margin:2px;}
+.opm-strip{font-size:.76rem;color:#86efac;background:var(--gbg);border:1px solid var(--gb);padding:5px 8px;border-radius:5px;margin-top:5px;}
+
+/* admin */
+.btn{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.9rem;padding:8px 16px;border-radius:6px;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:5px;}
+.btn-accent{background:var(--accent);color:#fff;}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--muted);}
+.btn-sm{font-size:.78rem;padding:5px 10px;}
+.btn-danger{background:transparent;border:1px solid var(--border);color:var(--muted);font-size:.75rem;padding:4px 9px;font-family:'Barlow Condensed',sans-serif;font-weight:700;cursor:pointer;border-radius:5px;}
+.datum-inp{background:var(--card);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-size:.84rem;font-family:'Barlow',sans-serif;}
+.share-box{background:var(--gbg);border:1px solid var(--gb);border-radius:9px;padding:11px 14px;margin-bottom:14px;}
+.share-box-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.82rem;color:var(--green);margin-bottom:4px;}
+.pac{background:var(--card);border:1px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden;}
+.pac-head{background:linear-gradient(90deg,#1a2040,var(--card));padding:10px 12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;cursor:pointer;user-select:none;}
+.pac-code{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.15rem;color:var(--accent);min-width:46px;}
+.pac-og{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.92rem;color:#fff;}
+.pac-loc{font-size:.73rem;color:var(--muted);flex:1;}
+.pac-acts{margin-left:auto;display:flex;gap:5px;align-items:center;}
+.pac-toggle{color:var(--muted);transition:transform .2s;font-size:.85rem;}
+.pac.collapsed .pac-toggle{transform:rotate(-90deg);}
+.pac-body{padding:10px 12px 14px;}
+.pac.collapsed .pac-body{display:none;}
+.fg{display:flex;flex-direction:column;gap:4px;margin-bottom:9px;}
+.fg label{font-size:.68rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.3px;}
+.fg input,.fg select,.fg textarea{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:6px;font-size:.83rem;font-family:'Barlow',sans-serif;width:100%;}
+.fg textarea{min-height:50px;resize:vertical;}
+.fg-2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.persons-blk{margin-bottom:10px;}
+.persons-title{font-family:'Barlow Condensed',sans-serif;font-size:.76rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;}
+.persons-title.u{color:var(--purple);}
+.persons-title.w{color:var(--blue);}
+.pr{display:grid;grid-template-columns:1fr 90px auto;gap:5px;margin-bottom:5px;align-items:center;}
+.pr input{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:6px 8px;border-radius:5px;font-size:.81rem;font-family:'Barlow',sans-serif;width:100%;}
+.pr input.kt{text-transform:uppercase;letter-spacing:1.2px;font-family:'Barlow Condensed',sans-serif;font-weight:700;}
+.delbtn{width:28px;height:28px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:5px;cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.add-p{background:transparent;border:1px dashed var(--border);color:var(--muted);font-size:.73rem;font-family:'Barlow Condensed',sans-serif;font-weight:700;padding:5px 10px;border-radius:5px;cursor:pointer;}
+
+/* login */
+#login-screen{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;display:none;align-items:center;justify-content:center;}
+#login-screen.open{display:flex;}
+.login-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:28px 24px;width:92%;max-width:360px;text-align:center;}
+.login-box h2{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.5rem;color:#fff;margin-bottom:4px;}
+.login-box p{color:var(--muted);font-size:.84rem;margin-bottom:20px;}
+.login-box input{width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:7px;font-size:1rem;font-family:'Barlow',sans-serif;margin-bottom:10px;text-align:center;letter-spacing:2px;}
+#login-error{color:var(--red);font-size:.8rem;margin-bottom:8px;min-height:18px;}
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-box">
+    <div style="font-size:2rem;margin-bottom:8px;">🔐</div>
+    <h2>Admin Login</h2>
+    <p>Wachtwoord invoeren</p>
+    <input type="password" id="pw-input" placeholder="Wachtwoord">
+    <div id="login-error"></div>
+    <button class="btn btn-accent" style="width:100%;justify-content:center;" id="login-btn">Inloggen</button>
+    <br><br>
+    <button class="btn btn-ghost" style="width:100%;justify-content:center;" id="cancel-login-btn">Annuleren</button>
+  </div>
+</div>
+
+<div class="topbar">
+  <div class="logo">STIPT<em>.</em>TECHNIEK</div>
+  <div class="topbar-right">
+    <span id="admin-badge">⚙ ADMIN</span>
+    <button id="logout-btn">Uitloggen</button>
+  </div>
+</div>
+
+<div class="tabs" id="tabs-bar">
+  <button class="tab active" id="tab-medewerker">👷 Mijn Rooster</button>
+  <button class="tab" id="tab-overzicht">📋 Overzicht</button>
+  <button class="tab" id="tab-admin" style="display:none;">⚙ Admin</button>
+</div>
+
+<div class="view active" id="view-medewerker">
+  <div id="screen-naam">
+    <div class="picker-wrap">
+      <h1>Wie ben jij?</h1>
+      <p id="picker-sub">Kies je naam om jouw rooster te zien</p>
+      <div class="name-grid" id="name-grid"></div>
+    </div>
+  </div>
+  <div id="screen-rooster" style="display:none;">
+    <button class="back-btn" id="back-btn">← Andere naam</button>
+    <div class="datum-lbl" id="rooster-datum"></div>
+    <div id="rooster-content"></div>
+  </div>
+</div>
+
+<div class="view" id="view-overzicht">
+  <div style="margin-bottom:12px;">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.2rem;color:#fff;">Dagoverzicht</div>
+    <div style="font-size:.76rem;color:var(--muted);" id="ovz-datum"></div>
+  </div>
+  <div class="stat-bar" id="ovz-stats"></div>
+  <div id="ovz-lijst"></div>
+</div>
+
+<div class="view" id="view-admin">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.2rem;color:#fff;">Rooster beheren</div>
+    <input type="date" class="datum-inp" id="admin-datum">
+  </div>
+  <div class="share-box">
+    <div class="share-box-title">📲 Zo deel je het rooster</div>
+    <div style="font-size:.78rem;color:#86efac;line-height:1.6;margin-bottom:10px;">1. Vul het rooster in &nbsp;→&nbsp; 2. Klik <strong>Opslaan</strong> &nbsp;→&nbsp; 3. Klik <strong>Deel link</strong> → plak in WhatsApp</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;">
+      <button class="btn btn-accent btn-sm" id="btn-opslaan">💾 Opslaan</button>
+      <button class="btn btn-ghost btn-sm" id="btn-deel">🔗 Deel link</button>
+      <button class="btn btn-ghost btn-sm" id="btn-export">📤 Backup</button>
+      <button class="btn btn-ghost btn-sm" id="btn-import-trigger">📥 Laad backup</button>
+      <input type="file" id="imp" accept=".json" style="display:none">
+    </div>
+  </div>
+  <div id="admin-projecten"></div>
+  <div style="display:flex;justify-content:center;margin-top:8px;">
+    <button class="btn btn-accent" id="btn-add-project">+ Nieuw project toevoegen</button>
+  </div>
+</div>
+
+<script>
+var STORAGE_KEY = 'stipt_v4';
+var ADMIN_PW = 'stipt2026';
+var DAGEN = ['Zondag','Maandag','Dinsdag','Woensdag','Donderdag','Vrijdag','Zaterdag'];
+var MAANDEN = ['januari','februari','maart','april','mei','juni','juli','augustus','september','oktober','november','december'];
+var TLABEL = {asbest:'Asbest',sloop:'Sloop',doedag:'DoeDag'};
+var isAdmin = false;
+
+function fmtDatum(s){
+  if(!s) return '';
+  var parts = s.split('-');
+  var y=parseInt(parts[0]), m=parseInt(parts[1]), d=parseInt(parts[2]);
+  var dt = new Date(y,m-1,d);
+  return DAGEN[dt.getDay()]+' '+d+' '+MAANDEN[m-1]+' '+y;
+}
+function todayStr(){
+  var d=new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// DEMO DATA
+var DEMO = {
+  datum:'2026-05-21',
+  projecten:[
+    {code:'24012',type:'sloop',og:'Smits',loc:'C. v. Lindenstraat, Zwijndrecht',start:'',
+     uitv:[{n:'M. el Hadrioui',kt:'V514PL',note:''},{n:'M. Pisniak',kt:'VJ254X',note:'2e werk'}],
+     werk:[{n:'M. el Oussidi',kt:'',note:''},{n:'HH',kt:'',note:''}],opm:'Sloop KBT-141'},
+    {code:'24063',type:'asbest',og:'ERA Contour',loc:'Kethelweg, Vlaardingen',start:'',
+     uitv:[{n:'H. Abali',kt:'V213LT',note:''},{n:'A. Halaf',kt:'V268DP',note:''}],
+     werk:[{n:'O. Amhauan',kt:'',note:'Alleen opstarten'},{n:'M. ben Youssef',kt:'',note:''}],opm:'Rk1 balkons'},
+    {code:'25006',type:'sloop',og:'Team ERA flats',loc:'Beemsterhoek 1-336, Capelle a/d IJssel',start:'',
+     uitv:[{n:'Ab. el Majjaoui',kt:'',note:''}],
+     werk:[{n:'W. Bachar',kt:'',note:''},{n:'Adil',kt:'',note:''},{n:'HH',kt:'',note:''},{n:'Karim',kt:'',note:''},{n:'Youssef',kt:'',note:''}],opm:''},
+    {code:'25035',type:'sloop',og:'Smits',loc:'Gaffelaar 24+28, Brielle',start:'',
+     uitv:[{n:'B. Basak',kt:'VKG62J',note:'1e werk'}],werk:[],opm:'Zolders RK1'},
+    {code:'25050',type:'sloop',og:'Vorm',loc:'Ruys de Beerenbrouckweg, Dordrecht',start:'',
+     uitv:[{n:'B. Basak',kt:'VKG62J',note:'2e werk'},{n:'S. Basak',kt:'',note:''}],werk:[],opm:'Nummers 3,15,27,39'},
+    {code:'25113',type:'asbest',og:'ECOBouw',loc:'Gevers Deynootweg, Den Haag',start:'',
+     uitv:[{n:'Ah. el Majjaoui',kt:'',note:''},{n:'W. de Vreede',kt:'',note:''}],
+     werk:[{n:'Ash. El Majjaoui',kt:'',note:''}],opm:''},
+    {code:'26016',type:'asbest',og:'Asbest Assist',loc:'Max Planckplaats, Rotterdam',start:'',
+     uitv:[],werk:[{n:'K. el Kadiri',kt:'',note:''},{n:'A. Hadj Ali',kt:'',note:''}],opm:''},
+    {code:'26023',type:'asbest',og:'ERA Contour',loc:'Kempenaar, Barendrecht',start:'',
+     uitv:[{n:'M. Pisniak',kt:'VJ254X',note:'1e werk'}],werk:[],
+     opm:'Boren Botter 26-49-50 + Kempenaar 25 + 2x O130 Tjalk 56 tegels'},
+    {code:'26054',type:'sloop',og:'via HH',loc:'Spoorweghaven 33, Rotterdam',start:'',
+     uitv:[],werk:[{n:'Nassim',kt:'VKL61G',note:''},{n:'HH',kt:'',note:''}],
+     opm:'Sloop KBT - Behangafstomer ophalen Loxam Rotterdam, Industrieweg 135'},
+    {code:'DoeDag',type:'doedag',og:'Gemeente Den Haag',loc:'Meppelweg 339, Den Haag',start:'08:00',
+     uitv:[{n:'H. Achahbar',kt:'V626LT',note:''}],
+     werk:[{n:'O. Amhauan',kt:'',note:''}],opm:''},
+  ]
+};
+
+// Laad data
+var rooster = (function(){
+  try{
+    var p = new URLSearchParams(window.location.search).get('r');
+    if(p) return JSON.parse(atob(p));
+  }catch(e){}
+  try{
+    var s = localStorage.getItem(STORAGE_KEY);
+    if(s) return JSON.parse(s);
+  }catch(e){}
+  return JSON.parse(JSON.stringify(DEMO));
+})();
+
+// ── VIEWS ──
+var activeView = 'medewerker';
+function setView(v){
+  activeView = v;
+  document.querySelectorAll('.view').forEach(function(el){ el.classList.remove('active'); });
+  document.getElementById('view-'+v).classList.add('active');
+  document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
+  var tab = document.getElementById('tab-'+v);
+  if(tab) tab.classList.add('active');
+  if(v==='medewerker') renderNamen();
+  if(v==='overzicht') renderOverzicht();
+  if(v==='admin') renderAdmin();
+}
+
+document.getElementById('tab-medewerker').addEventListener('click', function(){ setView('medewerker'); });
+document.getElementById('tab-overzicht').addEventListener('click', function(){ setView('overzicht'); });
+document.getElementById('tab-admin').addEventListener('click', function(){ setView('admin'); });
+
+// ── LOGIN ──
+document.getElementById('login-btn').addEventListener('click', doLogin);
+document.getElementById('cancel-login-btn').addEventListener('click', function(){
+  document.getElementById('login-screen').classList.remove('open');
+});
+document.getElementById('pw-input').addEventListener('keydown', function(e){
+  if(e.key==='Enter') doLogin();
+});
+document.getElementById('logout-btn').addEventListener('click', function(){
+  isAdmin = false;
+  document.getElementById('admin-badge').style.display = 'none';
+  document.getElementById('logout-btn').style.display = 'none';
+  document.getElementById('tab-admin').style.display = 'none';
+  setView('medewerker');
+});
+
+function openLogin(){
+  document.getElementById('login-screen').classList.add('open');
+  document.getElementById('pw-input').value = '';
+  document.getElementById('login-error').textContent = '';
+  setTimeout(function(){ document.getElementById('pw-input').focus(); }, 100);
+}
+function doLogin(){
+  if(document.getElementById('pw-input').value === ADMIN_PW){
+    isAdmin = true;
+    document.getElementById('login-screen').classList.remove('open');
+    document.getElementById('admin-badge').style.display = 'inline-block';
+    document.getElementById('logout-btn').style.display = 'inline-block';
+    document.getElementById('tab-admin').style.display = '';
+    setView('admin');
+  } else {
+    document.getElementById('login-error').textContent = 'Verkeerd wachtwoord';
+  }
+}
+
+// ── NAAM GRID ──
+function alleNamen(){
+  var set = {};
+  rooster.projecten.forEach(function(p){
+    p.uitv.concat(p.werk).forEach(function(m){
+      if(m.n && m.n.trim() && m.n !== 'HH') set[m.n.trim()] = true;
+    });
+  });
+  return Object.keys(set).sort(function(a,b){
+    var al = a.split(' ').pop(), bl = b.split(' ').pop();
+    return al.localeCompare(bl);
+  });
+}
+
+function renderNamen(){
+  document.getElementById('screen-naam').style.display = '';
+  document.getElementById('screen-rooster').style.display = 'none';
+  document.getElementById('picker-sub').textContent = fmtDatum(rooster.datum) || 'Kies je naam om jouw rooster te zien';
+
+  var namen = alleNamen();
+  var grid = document.getElementById('name-grid');
+  grid.innerHTML = '';
+
+  namen.forEach(function(naam){
+    var btn = document.createElement('button');
+    btn.className = 'name-btn';
+    btn.textContent = '👷 ' + naam;
+    btn.setAttribute('data-naam', naam);
+    grid.appendChild(btn);
+  });
+
+  var adminBtn = document.createElement('button');
+  adminBtn.className = 'name-btn admin-btn';
+  adminBtn.textContent = '🔐 Admin (Hussein)';
+  adminBtn.setAttribute('data-naam', '__admin__');
+  grid.appendChild(adminBtn);
+}
+
+// SINGLE click handler op de grid — werkt altijd op mobiel
+document.getElementById('name-grid').addEventListener('click', function(e){
+  var btn = e.target.closest('[data-naam]');
+  if(!btn) return;
+  var naam = btn.getAttribute('data-naam');
+  if(naam === '__admin__'){
+    openLogin();
+  } else {
+    toonRooster(naam);
+  }
+});
+
+document.getElementById('back-btn').addEventListener('click', function(){
+  document.getElementById('screen-naam').style.display = '';
+  document.getElementById('screen-rooster').style.display = 'none';
+  renderNamen();
+});
+
+function toonRooster(naam){
+  document.getElementById('screen-naam').style.display = 'none';
+  document.getElementById('screen-rooster').style.display = 'block';
+  document.getElementById('rooster-datum').textContent = fmtDatum(rooster.datum);
+
+  var gevonden = rooster.projecten.filter(function(p){
+    return p.uitv.some(function(u){ return u.n===naam; }) ||
+           p.werk.some(function(w){ return w.n===naam; });
+  });
+
+  var el = document.getElementById('rooster-content');
+
+  if(!gevonden.length){
+    el.innerHTML = '<div class="geen"><div class="icon">😴</div><h2>Niet ingedeeld vandaag</h2><p>Neem contact op met je uitvoerder als dit niet klopt.</p></div>';
+    return;
+  }
+
+  var html = gevonden.map(function(p){
+    var isU = p.uitv.find(function(u){ return u.n===naam; });
+    var zelf = isU || p.werk.find(function(w){ return w.n===naam; });
+    var rol = isU ? 'Uitvoerder / DTA' : 'Medewerker';
+    var ibCls = isU ? 'ib-uitv' : 'ib-werk';
+    var colls = p.uitv.concat(p.werk).filter(function(m){ return m.n!==naam && m.n!=='HH'; });
+
+    return '<div class="eigen-card">' +
+      '<div class="ec-head">' +
+        '<div class="ec-row">' +
+          '<span class="ec-code">'+p.code+'</span>' +
+          '<span class="ec-og">'+p.og+'</span>' +
+          '<span class="tbadge t-'+p.type+'">'+TLABEL[p.type]+'</span>' +
+          (p.start ? '<span style="background:var(--obg);border:1px solid var(--ob);color:var(--orange);font-family:\'Barlow Condensed\',sans-serif;font-weight:700;font-size:.72rem;padding:2px 8px;border-radius:4px;">▶ '+p.start+'</span>' : '') +
+        '</div>' +
+        '<div class="ec-loc">📍 <strong>'+p.loc+'</strong></div>' +
+      '</div>' +
+      '<div class="ec-body">' +
+        (p.start ? '<div class="ib ib-start"><div class="ib-lbl">Starttijd</div><div class="start-big">▶ '+p.start+'</div></div>' : '') +
+        '<div class="ib '+ibCls+'"><div class="ib-lbl">'+rol+'</div>' +
+          '<div style="font-size:.94rem;font-weight:600;">'+naam+(zelf.kt ? '<span class="kt-tag">'+zelf.kt+'</span>' : '')+(zelf.note ? ' <span style="color:var(--muted);font-size:.74rem;">('+zelf.note+')</span>' : '')+'</div>' +
+        '</div>' +
+        (colls.length ? '<div class="ib ib-coll"><div class="ib-lbl">Collega\'s vandaag</div><div class="coll-list">'+colls.map(function(c){ return '<span class="coll-chip">'+c.n+'</span>'; }).join('')+'</div></div>' : '') +
+        (p.opm ? '<div class="ib ib-opm"><div class="ib-lbl">⚠ Actie / Opmerking</div><div style="font-size:.84rem;font-weight:600;color:#86efac;">'+p.opm+'</div></div>' : '') +
+      '</div>' +
+    '</div>';
+  }).join('');
+  el.innerHTML = html;
+}
+
+// ── OVERZICHT ──
+function renderOverzicht(){
+  document.getElementById('ovz-datum').textContent = fmtDatum(rooster.datum);
+  var namen = {}, autos = {};
+  rooster.projecten.forEach(function(p){
+    p.uitv.concat(p.werk).forEach(function(m){
+      if(m.n && m.n!=='HH') namen[m.n]=true;
+      if(m.kt) autos[m.kt]=true;
+    });
+  });
+  document.getElementById('ovz-stats').innerHTML =
+    '<div class="stat"><span class="stat-n">'+rooster.projecten.length+'</span><span class="stat-l">Projecten</span></div>' +
+    '<div class="stat"><span class="stat-n">'+Object.keys(namen).length+'</span><span class="stat-l">Medewerkers</span></div>' +
+    '<div class="stat"><span class="stat-n">'+Object.keys(autos).length+'</span><span class="stat-l">Auto\'s</span></div>';
+
+  document.getElementById('ovz-lijst').innerHTML = rooster.projecten.map(function(p){
+    return '<div class="ovz-card">' +
+      '<div class="ovz-head">' +
+        '<span class="ovz-code">'+p.code+'</span>' +
+        '<span class="ovz-og">'+p.og+'</span>' +
+        '<span class="tbadge t-'+p.type+'">'+TLABEL[p.type]+'</span>' +
+        (p.start ? '<span style="background:var(--obg);border:1px solid var(--ob);color:var(--orange);font-family:\'Barlow Condensed\',sans-serif;font-weight:700;font-size:.7rem;padding:1px 7px;border-radius:4px;">▶ '+p.start+'</span>' : '') +
+        '<span class="ovz-loc">📍 '+p.loc+'</span>' +
+      '</div>' +
+      '<div class="ovz-body">' +
+        (p.uitv.length ? '<div style="margin-bottom:4px;">'+p.uitv.map(function(u){ return '<span class="uitv-chip">🔑 '+u.n+(u.kt?' · '+u.kt:'')+(u.note?' ('+u.note+')':'')+'</span>'; }).join('')+'</div>' : '') +
+        (p.werk.length ? '<div style="margin-bottom:4px;">'+p.werk.map(function(w){ return '<span class="werk-chip">👷 '+w.n+(w.kt?' · '+w.kt:'')+'</span>'; }).join('')+'</div>' : '') +
+        (p.opm ? '<div class="opm-strip">⚠ '+p.opm+'</div>' : '') +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+// ── ADMIN ──
+function renderAdmin(){
+  document.getElementById('admin-datum').value = rooster.datum || todayStr();
+  document.getElementById('admin-projecten').innerHTML = rooster.projecten.map(function(p,i){ return buildPac(p,i); }).join('');
+}
+
+function buildPac(p,i){
+  return '<div class="pac" id="pac-'+i+'">' +
+    '<div class="pac-head" onclick="togglePac('+i+')">' +
+      '<span class="pac-code" id="pcode-'+i+'">'+esc(p.code||'—')+'</span>' +
+      '<span class="pac-og" id="pog-'+i+'">'+esc(p.og||'Opdrachtgever')+'</span>' +
+      '<span class="tbadge t-'+p.type+'" id="ptype-'+i+'">'+TLABEL[p.type]+'</span>' +
+      '<span class="pac-loc" id="ploc-'+i+'">'+esc(p.loc||'')+'</span>' +
+      '<div class="pac-acts" onclick="event.stopPropagation()">' +
+        '<button class="btn-danger" onclick="delProject('+i+')">✕</button>' +
+        '<span class="pac-toggle">▾</span>' +
+      '</div>' +
+    '</div>' +
+    '<div class="pac-body">' +
+      '<div class="fg-2">' +
+        '<div class="fg"><label>Projectcode</label><input value="'+esc(p.code)+'" placeholder="bijv. 25006" oninput="rooster.projecten['+i+'].code=this.value;document.getElementById(\'pcode-'+i+'\').textContent=this.value||\'—\'"></div>' +
+        '<div class="fg"><label>Type</label><select onchange="rooster.projecten['+i+'].type=this.value"><option value="asbest"'+(p.type==='asbest'?' selected':'')+'>Asbest</option><option value="sloop"'+(p.type==='sloop'?' selected':'')+'>Sloop</option><option value="doedag"'+(p.type==='doedag'?' selected':'')+'>DoeDag</option></select></div>' +
+      '</div>' +
+      '<div class="fg-2">' +
+        '<div class="fg"><label>Opdrachtgever</label><input value="'+esc(p.og)+'" placeholder="ERA Contour" oninput="rooster.projecten['+i+'].og=this.value;document.getElementById(\'pog-'+i+'\').textContent=this.value||\'Opdrachtgever\'"></div>' +
+        '<div class="fg"><label>Starttijd</label><input type="time" value="'+esc(p.start||'')+'" onchange="rooster.projecten['+i+'].start=this.value"></div>' +
+      '</div>' +
+      '<div class="fg"><label>Locatie</label><input value="'+esc(p.loc)+'" placeholder="Straat, Stad" oninput="rooster.projecten['+i+'].loc=this.value;document.getElementById(\'ploc-'+i+'\').textContent=this.value"></div>' +
+      '<div class="persons-blk"><div class="persons-title u">Uitvoerders / DTA\'s <button class="add-p" onclick="addPerson('+i+',\'uitv\')">+ Toevoegen</button></div><div id="uitv-'+i+'">'+p.uitv.map(function(u,j){ return pRow(i,'uitv',j,u); }).join('')+'</div></div>' +
+      '<div class="persons-blk"><div class="persons-title w">Medewerkers <button class="add-p" onclick="addPerson('+i+',\'werk\')">+ Toevoegen</button></div><div id="werk-'+i+'">'+p.werk.map(function(w,j){ return pRow(i,'werk',j,w); }).join('')+'</div></div>' +
+      '<div class="fg"><label>Opmerking / Actie</label><textarea oninput="rooster.projecten['+i+'].opm=this.value">'+esc(p.opm)+'</textarea></div>' +
+    '</div>' +
+  '</div>';
+}
+
+function pRow(pi,field,ji,d){
+  return '<div class="pr" id="pr-'+pi+'-'+field+'-'+ji+'">' +
+    '<input value="'+esc(d.n)+'" placeholder="Naam" oninput="rooster.projecten['+pi+'].'+field+'['+ji+'].n=this.value">' +
+    '<input class="kt" value="'+esc(d.kt)+'" placeholder="Kenteken" maxlength="8" oninput="rooster.projecten['+pi+'].'+field+'['+ji+'].kt=this.value.toUpperCase()">' +
+    '<button class="delbtn" onclick="delPerson('+pi+',\''+field+'\','+ji+')">✕</button>' +
+  '</div>';
+}
+
+function togglePac(i){ document.getElementById('pac-'+i).classList.toggle('collapsed'); }
+function addPerson(pi,field){
+  rooster.projecten[pi][field].push({n:'',kt:'',note:''});
+  var ji = rooster.projecten[pi][field].length-1;
+  var c = document.getElementById(field+'-'+pi);
+  var div = document.createElement('div');
+  div.innerHTML = pRow(pi,field,ji,{n:'',kt:'',note:''});
+  c.appendChild(div.firstElementChild);
+}
+function delPerson(pi,field,ji){
+  rooster.projecten[pi][field].splice(ji,1);
+  document.getElementById(field+'-'+pi).innerHTML = rooster.projecten[pi][field].map(function(p,j){ return pRow(pi,field,j,p); }).join('');
+}
+function addProject(){
+  rooster.projecten.push({code:'',type:'asbest',og:'',loc:'',start:'',uitv:[{n:'',kt:'',note:''}],werk:[],opm:''});
+  var i = rooster.projecten.length-1;
+  var c = document.getElementById('admin-projecten');
+  var div = document.createElement('div');
+  div.innerHTML = buildPac(rooster.projecten[i],i);
+  c.appendChild(div.firstElementChild);
+  setTimeout(function(){ c.lastElementChild.scrollIntoView({behavior:'smooth'}); },60);
+}
+function delProject(i){
+  if(!confirm('Project verwijderen?')) return;
+  rooster.projecten.splice(i,1);
+  renderAdmin();
+}
+
+document.getElementById('btn-add-project').addEventListener('click', addProject);
+document.getElementById('admin-datum').addEventListener('change', function(){ rooster.datum = this.value; });
+
+document.getElementById('btn-opslaan').addEventListener('click', function(){
+  rooster.datum = document.getElementById('admin-datum').value || rooster.datum;
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(rooster)); }catch(e){}
+  renderOverzicht(); renderNamen();
+  alert('Rooster opgeslagen!');
+});
+
+document.getElementById('btn-deel').addEventListener('click', function(){
+  try{
+    var url = window.location.origin + window.location.pathname + '?r=' + encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(rooster)))));
+    if(navigator.share){
+      navigator.share({title:'Stipt Techniek Rooster', url:url});
+    } else {
+      navigator.clipboard.writeText(url).then(function(){
+        alert('Link gekopieerd! Plak in WhatsApp groep.');
+      }).catch(function(){ prompt('Kopieer deze link:', url); });
+    }
+  }catch(e){ alert('Sla eerst op!'); }
+});
+
+document.getElementById('btn-export').addEventListener('click', function(){
+  var blob = new Blob([JSON.stringify(rooster,null,2)],{type:'application/json'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'rooster-'+rooster.datum+'.json';
+  a.click();
+});
+
+document.getElementById('btn-import-trigger').addEventListener('click', function(){
+  document.getElementById('imp').click();
+});
+document.getElementById('imp').addEventListener('change', function(){
+  var file = this.files[0]; if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      rooster = JSON.parse(e.target.result);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(rooster));
+      renderAdmin(); renderOverzicht(); renderNamen();
+      alert('Backup ingeladen!');
+    }catch(err){ alert('Ongeldig bestand'); }
+  };
+  reader.readAsText(file);
+  this.value='';
+});
+
+// INIT
+renderNamen();
+</script>
+</body>
+</html>
